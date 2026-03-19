@@ -11,6 +11,8 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
 
+val patchVersion = System.getenv("VERSION_PATCH")?.toIntOrNull() ?: 0
+
 android {
     namespace = "org.ippoan.shaken"
     compileSdk = 34
@@ -28,8 +30,8 @@ android {
         applicationId = "org.ippoan.shaken"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = if (patchVersion > 0) patchVersion else 1
+        versionName = "1.0.$patchVersion"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
