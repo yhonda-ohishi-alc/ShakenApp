@@ -174,18 +174,31 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val ALLOWED_MIME_TYPES = setOf(
+        "application/pdf",
+        "application/json",
+        "text/json"
+    )
+
     private fun handleShareIntent(intent: Intent) {
         lifecycleScope.launch {
             val files = withContext(Dispatchers.IO) {
                 extractSharedFiles(intent)
             }
-            if (files.isNotEmpty()) {
+            // PDF/JSON 以外のファイルを除外（MIME type + 拡張子で判定）
+            val filtered = files.filter { file ->
+                file.mimeType in ALLOWED_MIME_TYPES ||
+                file.name.endsWith(".pdf", ignoreCase = true) ||
+                file.name.endsWith(".json", ignoreCase = true)
+            }
+            if (filtered.isNotEmpty()) {
                 sharedFiles.clear()
-                sharedFiles.addAll(files)
-                Log.i(TAG, "Received ${files.size} shared files")
-
-                // WebView をロードしてファイルを渡す
+                sharedFiles.addAll(filtered)
+                Log.i(TAG, "Received ${filtered.size} shared files (${files.size - filtered.size} rejected)")
                 webView.loadUrl(BASE_URL)
+            } else if (files.isNotEmpty()) {
+                Toast.makeText(this@MainActivity, "PDF/JSON ファイルのみ対応しています", Toast.LENGTH_SHORT).show()
+                finish()
             }
         }
     }
@@ -211,16 +224,23 @@ class MainActivity : AppCompatActivity() {
         return result
     }
 
-    private fun readFileFromUri(uri: Uri, mimeType: String): SharedFileInfo? {
+    private fun readFileFromUri(uri: Uri, fallbackMimeType: String): SharedFileInfo? {
         return try {
             val fileName = getFileName(uri) ?: "file"
+            // ContentResolver から正確な MIME type を取得、取れなければファイル名から推定
+            val resolvedMimeType = contentResolver.getType(uri)
+                ?: when {
+                    fileName.endsWith(".pdf", ignoreCase = true) -> "application/pdf"
+                    fileName.endsWith(".json", ignoreCase = true) -> "application/json"
+                    else -> fallbackMimeType
+                }
             val inputStream = contentResolver.openInputStream(uri) ?: return null
             val bytes = inputStream.readBytes()
             inputStream.close()
             val base64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
             SharedFileInfo(
                 name = fileName,
-                mimeType = mimeType,
+                mimeType = resolvedMimeType,
                 base64Data = base64
             )
         } catch (e: Exception) {

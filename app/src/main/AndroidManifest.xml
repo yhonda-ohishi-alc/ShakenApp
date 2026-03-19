@@ -34,27 +34,23 @@
                 android:name="android.nfc.action.TECH_DISCOVERED"
                 android:resource="@xml/nfc_tech_filter" />
 
-            <!-- 共有 Intent 受信: PDF -->
+            <!-- 共有 Intent 受信: あらゆるファイル -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="application/pdf" />
+                <data android:mimeType="*/*" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.SEND_MULTIPLE" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="application/pdf" />
+                <data android:mimeType="*/*" />
             </intent-filter>
 
-            <!-- 共有 Intent 受信: JSON -->
+            <!-- VIEW Intent 受信: PDF/JSON ファイルを直接開く -->
             <intent-filter>
-                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="application/json" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.SEND_MULTIPLE" />
-                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/pdf" />
                 <data android:mimeType="application/json" />
             </intent-filter>
         </activity>
