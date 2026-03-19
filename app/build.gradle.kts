@@ -3,9 +3,26 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+import java.util.Properties
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+
 android {
     namespace = "org.ippoan.shaken"
     compileSdk = 34
+
+    signingConfigs {
+        create("release") {
+            storeFile = file("release.keystore")
+            storePassword = System.getenv("RELEASE_STORE_PASSWORD") ?: localProperties.getProperty("RELEASE_STORE_PASSWORD")
+            keyAlias = "shaken"
+            keyPassword = System.getenv("RELEASE_KEY_PASSWORD") ?: localProperties.getProperty("RELEASE_KEY_PASSWORD")
+        }
+    }
 
     defaultConfig {
         applicationId = "org.ippoan.shaken"
@@ -15,15 +32,6 @@ android {
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    signingConfigs {
-        create("release") {
-            storeFile = file("release.keystore")
-            storePassword = "inF5DGDYzz9x6NfR3B1R"
-            keyAlias = "shaken"
-            keyPassword = "inF5DGDYzz9x6NfR3B1R"
-        }
     }
 
     buildTypes {
